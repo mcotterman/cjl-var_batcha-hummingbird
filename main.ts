@@ -1,4 +1,5 @@
 let mbId = "1"
+const isVba = false;
 
 radio.onReceivedString(function (receivedString) {
     handleMessage(receivedString);
@@ -363,70 +364,72 @@ input.onButtonPressed(Button.A, function () {
     // }
 })
 
-//Group 0
-basic.forever(function () {
-    if(isRunning) {
-        if(cmdVars[0] && cmdVars[0][0]) {
-            cmdVars[0].forEach(function (cmd: any) {
-               if(cmd.deviceType && cmd.deviceId && cmd.value){
-                   if(cmd.deviceType == 'x') {
-                       basic.pause(parseInt(cmd.value));
-                   } else {
-                    //    console.log(cmd);
-                       basic.showString(cmd.value);
-                    //    handleMessage(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
-                   }
-               } 
-            });
+if(isVba) {
+    //Group 0
+    basic.forever(function () {
+        if(isRunning) {
+            if(cmdVars[0] && cmdVars[0][0]) {
+                cmdVars[0].forEach(function (cmd: any) {
+                if(cmd.deviceType && cmd.deviceId && cmd.value){
+                    if(cmd.deviceType == 'x') {
+                        basic.pause(parseInt(cmd.value));
+                    } else {
+                        //    console.log(cmd);
+                        basic.showString(cmd.value);
+                        //    handleMessage(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
+                    }
+                } 
+                });
+            }
+        } else {
+            basic.pause(500);
+            // Add any position cleanup for the stop state here
         }
-    } else {
-        basic.pause(500);
-        // Add any position cleanup for the stop state here
-    }
-})
+    })
 
-//Group 1
-basic.forever(function () {
-    if(isRunning) {
-        if(cmdVars[1] && cmdVars[1][0]) {
-            cmdVars[1].forEach(function (cmd: any) {
-               if(cmd.deviceType && cmd.deviceId && cmd.value){
-                   if(cmd.deviceType == 'x') {
-                       basic.pause(parseInt(cmd.value));
-                   } else {
-                    //    console.log(cmd);
-                       basic.showString(cmd.value);
-                    //    handleMessage(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
-                   }
-               } 
-            });
+    //Group 1
+    basic.forever(function () {
+        if(isRunning) {
+            if(cmdVars[1] && cmdVars[1][0]) {
+                cmdVars[1].forEach(function (cmd: any) {
+                if(cmd.deviceType && cmd.deviceId && cmd.value){
+                    if(cmd.deviceType == 'x') {
+                        basic.pause(parseInt(cmd.value));
+                    } else {
+                        //    console.log(cmd);
+                        basic.showString(cmd.value);
+                        //    handleMessage(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
+                    }
+                } 
+                });
+            }
+        } else {
+            basic.pause(500);
+            // Add any position cleanup for the stop state here
         }
-    } else {
-        basic.pause(500);
-        // Add any position cleanup for the stop state here
-    }
-})
+    })
 
-//Group 2
-basic.forever(function () {
-    if(isRunning) {
-        if(cmdVars[2] && cmdVars[2][0]) {
-            cmdVars[2].forEach(function (cmd: any) {
-               if(cmd.deviceType && cmd.deviceId && cmd.value){
-                   if(cmd.deviceType == 'x') {
-                       basic.pause(parseInt(cmd.value));
-                   } else {
-                    //    console.log(cmd);
-                       basic.showString(cmd.value);
-                    //    handleMessage(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
-                   }
-               } 
-            });
+    //Group 2
+    basic.forever(function () {
+        if(isRunning) {
+            if(cmdVars[2] && cmdVars[2][0]) {
+                cmdVars[2].forEach(function (cmd: any) {
+                if(cmd.deviceType && cmd.deviceId && cmd.value){
+                    if(cmd.deviceType == 'x') {
+                        basic.pause(parseInt(cmd.value));
+                    } else {
+                        //    console.log(cmd);
+                        basic.showString(cmd.value);
+                        //    handleMessage(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
+                    }
+                } 
+                });
+            }
+        } else {
+            basic.pause(500);
+            // Add any position cleanup for the stop state here
         }
-    } else {
-        basic.pause(500);
-        // Add any position cleanup for the stop state here
-    }
-})
+    })
+}
 
 basic.showString(mbId);
