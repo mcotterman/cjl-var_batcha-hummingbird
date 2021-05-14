@@ -18,20 +18,22 @@ radio.setGroup(27)
 let servos = [
     {
         port: "1",
-        stype: "p",
+        stype: "r",
         pin: FourPort.One,
         state: 0,
-        min: 10,
-        max: 150,
+        min: -100,
+        max: 100,
+        fudge: 0,
         invert: false
     },
         {
         port: "2",
         pin: FourPort.Two,
-        stype: "p",
+        stype: "r",
         state: 0,
-        min: 10,
-        max: 150,
+        min: -100,
+        max: 100,
+        fudge: 0,
         invert: false
     },
     {
@@ -41,6 +43,7 @@ let servos = [
         state: 0,
         min: 10,
         max: 150,
+        fudge: 0,
         invert: false
     },
     {
@@ -50,6 +53,7 @@ let servos = [
         state: 0,
         min: 10,
         max: 150,
+        fudge: 0,
         invert: false
     }
 ]
@@ -92,13 +96,14 @@ let trileds = [
 let robots = [
     {
         id: "1",
+        fudge: 5,
         leftMotor: {
             pin: FourPort.Two,
-            rotateForward: 1
+            rotateForward: true
         },
         rightMotor: {
             pin: FourPort.One,
-            rotateForward: 0
+            rotateForward: false
         }
     }
 ]
@@ -195,10 +200,14 @@ function controlServo(id: string, stype: string, newState: number) {
     })
     if(foundServo) {
         if(newState != foundServo.state) {
-            newState = Math.constrain((foundServo.invert ? 180 - newState : newState), foundServo.min, foundServo.max)
             if(stype == "p") {
+                newState = Math.constrain((foundServo.invert ? 180 - newState : newState), foundServo.min, foundServo.max)
                 hummingbird.setPositionServo(foundServo.pin, newState)
             } else {
+                newState = Math.constrain((foundServo.invert ? newState * -1 : newState), foundServo.min, foundServo.max)
+                if(newState < 0 && newState >= foundServo.min) {
+                    newState -= foundServo.fudge;
+                }
                 hummingbird.setRotationServo(foundServo.pin, newState)
             }
             foundServo.state = newState
@@ -215,20 +224,20 @@ function controlBot(id: string, direction: string, speed: number) {
     if(foundBot) {
         switch(direction) {
             case 'f':
-                hummingbird.setRotationServo(foundBot.leftMotor.pin, foundBot.leftMotor.rotateForward ? speed : (speed * -1))
-                hummingbird.setRotationServo(foundBot.rightMotor.pin, foundBot.rightMotor.rotateForward ? speed : (speed * -1))
+                hummingbird.setRotationServo(foundBot.leftMotor.pin, foundBot.leftMotor.rotateForward ? speed : ((speed + foundBot.fudge) * -1))
+                hummingbird.setRotationServo(foundBot.rightMotor.pin, foundBot.rightMotor.rotateForward ? speed : ((speed + foundBot.fudge) * -1))
                 break;
             case 'b':
-                hummingbird.setRotationServo(foundBot.leftMotor.pin, foundBot.leftMotor.rotateForward ? speed * -1 : speed)
-                hummingbird.setRotationServo(foundBot.rightMotor.pin, foundBot.rightMotor.rotateForward ? speed * -1 : speed)
+                hummingbird.setRotationServo(foundBot.leftMotor.pin, foundBot.leftMotor.rotateForward ? (speed + foundBot.fudge) * -1 : speed)
+                hummingbird.setRotationServo(foundBot.rightMotor.pin, foundBot.rightMotor.rotateForward ? (speed + foundBot.fudge) * -1 : speed)
                 break;
             case 'r':
-                hummingbird.setRotationServo(foundBot.leftMotor.pin, foundBot.leftMotor.rotateForward ? speed: speed * -1)
-                hummingbird.setRotationServo(foundBot.rightMotor.pin, foundBot.rightMotor.rotateForward ? speed * -1 : speed)
+                hummingbird.setRotationServo(foundBot.leftMotor.pin, foundBot.leftMotor.rotateForward ? speed: (speed + foundBot.fudge) * -1)
+                hummingbird.setRotationServo(foundBot.rightMotor.pin, foundBot.rightMotor.rotateForward ? (speed + foundBot.fudge) * -1 : speed)
                 break;
             case 'l':
-                hummingbird.setRotationServo(foundBot.leftMotor.pin, foundBot.leftMotor.rotateForward ? speed * -1 : speed)
-                hummingbird.setRotationServo(foundBot.rightMotor.pin, foundBot.rightMotor.rotateForward ? speed : speed * -1)
+                hummingbird.setRotationServo(foundBot.leftMotor.pin, foundBot.leftMotor.rotateForward ? (speed + foundBot.fudge) * -1 : speed)
+                hummingbird.setRotationServo(foundBot.rightMotor.pin, foundBot.rightMotor.rotateForward ? speed : (speed + foundBot.fudge) * -1)
                 break;
             case 's':
                 hummingbird.setRotationServo(foundBot.leftMotor.pin, 0)
