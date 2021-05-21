@@ -63,8 +63,8 @@ let robots = [
     {
         id: "1",
         fudge: 5,
-        speed_limit_straight: false,
-        speed_limit_turn: false,
+        speedLimitStraight: false,
+        speedLimitTurn: false,
         static_speed_straight: 75,
         static_speed_turn: 50,
         leftMotor: {
@@ -226,14 +226,14 @@ function adjustBotSpeed(bot: any, direction: string, speed: any) {
     if(direction == 'f' || direction == 'b') {
         if(bot.static_speed_straight) {
             speed = bot.static_speed_straight;
-        } else if(bot.speed_limit_straight) {
-            speed = speed > bot.speed_limit_straight ? bot.speed_limit_straight : speed;
+        } else if(bot.speedLimitStraight) {
+            speed = speed > bot.speedLimitStraight ? bot.speedLimitStraight : speed;
         }
     } else if(direction == 'l' || direction == 'r') {
         if(bot.static_speed_turn) {
             speed = bot.static_speed_turn;
-        } else if(bot.speed_limit_turn) {
-            speed = speed > bot.speed_limit_turn ? bot.speed_limit_turn : speed;
+        } else if(bot.speedLimitTurn) {
+            speed = speed > bot.speedLimitTurn ? bot.speedLimitTurn : speed;
         }
     }
     return speed;
