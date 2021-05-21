@@ -59,6 +59,25 @@ let servos = [
     }
 ]
 
+let robots = [
+    {
+        id: "1",
+        fudge: 5,
+        speed_limit_straight: false,
+        speed_limit_turn: false,
+        static_speed_straight: 75,
+        static_speed_turn: 50,
+        leftMotor: {
+            pin: FourPort.Two,
+            rotateForward: true
+        },
+        rightMotor: {
+            pin: FourPort.One,
+            rotateForward: false
+        }
+    }
+]
+
 // led.enable(false)
 let leds = [
     {
@@ -91,21 +110,6 @@ let trileds = [
         greenState: 0,
         blueState: 0,
         pin: TwoPort.Two
-    }
-]
-
-let robots = [
-    {
-        id: "1",
-        fudge: 5,
-        leftMotor: {
-            pin: FourPort.Two,
-            rotateForward: true
-        },
-        rightMotor: {
-            pin: FourPort.One,
-            rotateForward: false
-        }
     }
 ]
 
@@ -218,11 +222,29 @@ function controlServo(id: string, stype: string, newState: number) {
     return false
 }
 
+function adjustBotSpeed(bot: any, direction: string, speed: any) {
+    if(direction == 'f' || direction == 'b') {
+        if(bot.static_speed_straight) {
+            speed = bot.static_speed_straight;
+        } else if(bot.speed_limit_straight) {
+            speed = speed > bot.speed_limit_straight ? bot.speed_limit_straight : speed;
+        }
+    } else if(direction == 'l' || direction == 'r') {
+        if(bot.static_speed_turn) {
+            speed = bot.static_speed_turn;
+        } else if(bot.speed_limit_turn) {
+            speed = speed > bot.speed_limit_turn ? bot.speed_limit_turn : speed;
+        }
+    }
+    return speed;
+}
+
 function controlBot(id: string, direction: string, speed: number) {
     let foundBot = robots.find(function (value: any, index: number) {
         return (value.id == id)
     })
     if(foundBot) {
+        speed = adjustBotSpeed(foundBot, direction, speed);
         switch(direction) {
             case 'f':
                 hummingbird.setRotationServo(foundBot.leftMotor.pin, foundBot.leftMotor.rotateForward ? speed : ((speed + foundBot.fudge) * -1))
