@@ -332,11 +332,16 @@ function controlVariable(id: string, data: string) {
 }
 
 function controlCommands(gid: string, data: string) {
-    cmdVars[parseInt(gid)][parseInt(data[0])] = {
+    // cmdVars[parseInt(gid)][parseInt(data[0])] = {
+    //     deviceType: data[1],
+    //     deviceId: data[2],
+    //     value: data.substr(3,100)
+    // });
+    cmdVars[parseInt(gid)].push({
         deviceType: data[1],
         deviceId: data[2],
         value: data.substr(3,100)
-    }
+    });
 }
 
 function handleMessage(msg: string) {
