@@ -1,6 +1,10 @@
 const mbId = "1"
 const isVba = true;
 
+/****
+ * Device control variables
+ */
+
 /*
     Servo List
     You do not need to add or remove any servos, but you can alter the max/min if needed
@@ -51,16 +55,16 @@ let servos = [
         fudge: 0,
         invert: false
     }
-]
+];
 
-let robots = [
+let rovers = [
     {
         id: "1",
         fudge: 5,
-        speedLimitStraight: false,
-        speedLimitTurn: false,
-        static_speed_straight: 75,
-        static_speed_turn: 50,
+        speedLimitStraight: 0,
+        speedLimitTurn: 0,
+        staticSpeedStraight: 75,
+        staticSpeedTurn: 50,
         leftMotor: {
             pin: FourPort.Two,
             rotateForward: true
@@ -70,7 +74,7 @@ let robots = [
             rotateForward: false
         }
     }
-]
+];
 
 // led.enable(false)
 let leds = [
@@ -89,7 +93,7 @@ let leds = [
         state: 0,
         pin: ThreePort.Three
     }
-]
+];
 let trileds = [
     {
         port: "1",
@@ -105,7 +109,7 @@ let trileds = [
         blueState: 0,
         pin: TwoPort.Two
     }
-]
+];
 
 let botheads = [
     {
@@ -129,7 +133,7 @@ let botheads = [
             increment: 1
         }
     }
-]
+];
 
 // function getRmbVar (key: string) {
 //     const item = rmbVars.find(function (rVar: any, index: number) {
@@ -142,65 +146,65 @@ let botheads = [
  * Platform Specific Functions
  */
 
-hummingbird.startHummingbird()
+hummingbird.startHummingbird();
 
 function controlLed(id: string, newState: number) {
     let foundLed = leds.find(function (value: any, index: number) {
-        return value.port == id
+        return value.port == id;
     })
     if(foundLed) {
         if(newState != foundLed.state) {
-            hummingbird.setLED(foundLed.pin, newState)
-            foundLed.state = newState
+            hummingbird.setLED(foundLed.pin, newState);
+            foundLed.state = newState;
         }
-        return true
+        return true;
     }
-    return false
+    return false;
 }
 
 function controlTriLed(id: string, newState: string) {
     let foundTriLed = trileds.find(function (value: any, index: number) {
-        return value.port == id
+        return value.port == id;
     })
     if(foundTriLed) {
         let newStates = {
             red: convertLed(newState[0]),
             green: convertLed(newState[1]),
             blue: convertLed(newState[2])
-        }
+        };
         if(newStates.red != foundTriLed.redState || newStates.green != foundTriLed.greenState || newStates.blue != foundTriLed.blueState) {
             hummingbird.setTriLED(TwoPort.One, newStates.red, newStates.green, newStates.blue)
             foundTriLed.redState = newStates.red
             foundTriLed.greenState = newStates.green
             foundTriLed.blueState = newStates.blue
-        }
+        };
         // basic.showString(`${newStates.red}${newStates.green}${newStates.blue}`)
-        return true
+        return true;
     }
-    return false
+    return false;
 }
 
 function controlServo(id: string, stype: string, newState: number) {
     let foundServo = servos.find(function (value: any, index: number) {
-        return (value.port == id && value.stype == stype)
+        return (value.port == id && value.stype == stype);
     })
     if(foundServo) {
         if(newState != foundServo.state) {
             if(stype == "p") {
                 newState = Math.constrain((foundServo.invert ? 180 - newState : newState), foundServo.min, foundServo.max)
-                hummingbird.setPositionServo(foundServo.pin, newState)
+                hummingbird.setPositionServo(foundServo.pin, newState);
             } else {
                 newState = Math.constrain((foundServo.invert ? newState * -1 : newState), foundServo.min, foundServo.max)
                 if(newState < 0 && newState >= foundServo.min) {
                     newState -= foundServo.fudge;
                 }
-                hummingbird.setRotationServo(foundServo.pin, newState)
+                hummingbird.setRotationServo(foundServo.pin, newState);
             }
-            foundServo.state = newState
+            foundServo.state = newState;
         }
-        return true
+        return true;
     }
-    return false
+    return false;
 }
 
 function adjustBotSpeed(bot: any, direction: string, speed: any) {
@@ -220,42 +224,42 @@ function adjustBotSpeed(bot: any, direction: string, speed: any) {
     return speed;
 }
 
-function controlBot(id: string, direction: string, speed: number) {
-    let foundBot = robots.find(function (value: any, index: number) {
-        return (value.id == id)
+function controlRover(id: string, direction: string, speed: number) {
+    let foundBot = rovers.find(function (value: any, index: number) {
+        return (value.id == id);
     })
     if(foundBot) {
         speed = adjustBotSpeed(foundBot, direction, speed);
         switch(direction) {
             case 'f':
-                hummingbird.setRotationServo(foundBot.leftMotor.pin, foundBot.leftMotor.rotateForward ? speed : ((speed + foundBot.fudge) * -1))
-                hummingbird.setRotationServo(foundBot.rightMotor.pin, foundBot.rightMotor.rotateForward ? speed : ((speed + foundBot.fudge) * -1))
+                hummingbird.setRotationServo(foundBot.leftMotor.pin, foundBot.leftMotor.rotateForward ? speed : ((speed + foundBot.fudge) * -1));
+                hummingbird.setRotationServo(foundBot.rightMotor.pin, foundBot.rightMotor.rotateForward ? speed : ((speed + foundBot.fudge) * -1));
                 break;
             case 'b':
-                hummingbird.setRotationServo(foundBot.leftMotor.pin, foundBot.leftMotor.rotateForward ? (speed + foundBot.fudge) * -1 : speed)
-                hummingbird.setRotationServo(foundBot.rightMotor.pin, foundBot.rightMotor.rotateForward ? (speed + foundBot.fudge) * -1 : speed)
+                hummingbird.setRotationServo(foundBot.leftMotor.pin, foundBot.leftMotor.rotateForward ? (speed + foundBot.fudge) * -1 : speed);
+                hummingbird.setRotationServo(foundBot.rightMotor.pin, foundBot.rightMotor.rotateForward ? (speed + foundBot.fudge) * -1 : speed);
                 break;
             case 'r':
-                hummingbird.setRotationServo(foundBot.leftMotor.pin, foundBot.leftMotor.rotateForward ? speed: (speed + foundBot.fudge) * -1)
-                hummingbird.setRotationServo(foundBot.rightMotor.pin, foundBot.rightMotor.rotateForward ? (speed + foundBot.fudge) * -1 : speed)
+                hummingbird.setRotationServo(foundBot.leftMotor.pin, foundBot.leftMotor.rotateForward ? speed: (speed + foundBot.fudge) * -1);
+                hummingbird.setRotationServo(foundBot.rightMotor.pin, foundBot.rightMotor.rotateForward ? (speed + foundBot.fudge) * -1 : speed);
                 break;
             case 'l':
-                hummingbird.setRotationServo(foundBot.leftMotor.pin, foundBot.leftMotor.rotateForward ? (speed + foundBot.fudge) * -1 : speed)
-                hummingbird.setRotationServo(foundBot.rightMotor.pin, foundBot.rightMotor.rotateForward ? speed : (speed + foundBot.fudge) * -1)
+                hummingbird.setRotationServo(foundBot.leftMotor.pin, foundBot.leftMotor.rotateForward ? (speed + foundBot.fudge) * -1 : speed);
+                hummingbird.setRotationServo(foundBot.rightMotor.pin, foundBot.rightMotor.rotateForward ? speed : (speed + foundBot.fudge) * -1);
                 break;
             case 's':
-                hummingbird.setRotationServo(foundBot.leftMotor.pin, 0)
-                hummingbird.setRotationServo(foundBot.rightMotor.pin, 0)
+                hummingbird.setRotationServo(foundBot.leftMotor.pin, 0);
+                hummingbird.setRotationServo(foundBot.rightMotor.pin, 0);
                 break;
         }
     } else {
-        basic.showString(`Robot ${id} not found`)
+        basic.showString(`Rover ${id} not found`);
     }
 }
 
 function controlBotHead(id: string, direction: string) {
     let foundBot = botheads.find(function (value: any, index: number) {
-        return (value.id == id)
+        return (value.id == id);
     })
     if(foundBot) {
         // basic.showString("*h*")
@@ -294,12 +298,8 @@ function controlBotHead(id: string, direction: string) {
                 break;
         }
     } else {
-        basic.showString(`Bothead ${id} not found`)
+        basic.showString(`Bothead ${id} not found`);
     }
-}
-
-function convertLed(value: string) {
-    return value.toLowerCase() == "f" ? 100 : parseInt(value) * 10
 }
 
 /******
@@ -318,6 +318,10 @@ for (let i = 0; i < 3; i++) {
     basic.pause(300)
     controlLed("1", 0)
     basic.pause(300)
+}
+
+function convertLed(value: string) {
+    return value.toLowerCase() == "f" ? 100 : parseInt(value) * 10;
 }
 
 radio.onReceivedString(function (receivedString) {
@@ -361,7 +365,7 @@ function handleMessage(msg: string) {
                 controlServo(dId, msg[1], parseInt(msg.substr(3,4)));
                 break;
             case "b": // Rover
-                controlBot(dId, msg[3].toLowerCase(), parseInt(msg.substr(4,4)));
+                controlRover(dId, msg[3].toLowerCase(), parseInt(msg.substr(4,4)));
                 break;
             case "h": // Bothead or 2 axis gimble
                 controlBotHead(dId, msg[3].toLowerCase());
