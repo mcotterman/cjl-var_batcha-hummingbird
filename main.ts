@@ -1,11 +1,5 @@
-let mbId = "1"
-const isVba = false;
-
-radio.onReceivedString(function (receivedString) {
-    handleMessage(receivedString);
-    // basic.showString(receivedString);
-})
-radio.setGroup(27)
+const mbId = "1"
+const isVba = true;
 
 /*
     Servo List
@@ -137,15 +131,6 @@ let botheads = [
     }
 ]
 
-/* Variables
-Allows RMB to set variables that can then be read by loops to update StringMap
-*/
-
-
-let cmdVars = [[{}]];
-
-let isRunning = false;
-
 // function getRmbVar (key: string) {
 //     const item = rmbVars.find(function (rVar: any, index: number) {
 //         return rVar.key == key;
@@ -153,15 +138,11 @@ let isRunning = false;
 //     return item ? item.val : "0";
 // }
 
-hummingbird.startHummingbird()
-let debug = 0;
+/******
+ * Platform Specific Functions
+ */
 
-for (let i = 0; i < 3; i++) {
-    controlLed("1", 100)
-    basic.pause(300)
-    controlLed("1", 0)
-    basic.pause(300)
-}
+hummingbird.startHummingbird()
 
 function controlLed(id: string, newState: number) {
     let foundLed = leds.find(function (value: any, index: number) {
@@ -313,13 +294,37 @@ function controlBotHead(id: string, direction: string) {
                 break;
         }
     } else {
-        basic.showString(`Robot ${id} not found`)
+        basic.showString(`Bothead ${id} not found`)
     }
 }
 
 function convertLed(value: string) {
     return value.toLowerCase() == "f" ? 100 : parseInt(value) * 10
 }
+
+/******
+ * NON-Platform Specific Functions
+ */
+
+/* Variables
+Allows RMB to set variables that can then be read by loops to update StringMap
+*/
+let cmdVars = [[{}]];
+let debug = 0;
+let isRunning = false;
+
+for (let i = 0; i < 3; i++) {
+    controlLed("1", 100)
+    basic.pause(300)
+    controlLed("1", 0)
+    basic.pause(300)
+}
+
+radio.onReceivedString(function (receivedString) {
+    handleMessage(receivedString);
+    // basic.showString(receivedString);
+})
+radio.setGroup(27)
 
 function controlVariable(id: string, data: string) {
     const d = data.split('=');
@@ -332,14 +337,11 @@ function controlVariable(id: string, data: string) {
 }
 
 function controlCommands(gid: string, data: string) {
-    // cmdVars[parseInt(gid)][parseInt(data[0])] = {
-    //     deviceType: data[1],
-    //     deviceId: data[2],
-    //     value: data.substr(3,100)
-    // });
+    const deviceType = data[1];
+    const deviceId = deviceType == 'x' ? '' : data[2];
     cmdVars[parseInt(gid)].push({
-        deviceType: data[1],
-        deviceId: data[2],
+        deviceType: deviceType,
+        deviceId: deviceId,
         value: data.substr(3,100)
     });
 }
@@ -348,25 +350,27 @@ function handleMessage(msg: string) {
     if(mbId == msg[0]) {
         let dId = msg[2]
         switch(msg[1]) {
-            case "l":
+            case "l": // LED
                 controlLed(dId, convertLed(msg[3]));
                 break;
-            case "t":
+            case "t": // Tricolor LED
                 controlTriLed(dId, msg.substr(3,3));
                 break;
-            case "p":
-            case "r":
+            case "p": // Position Servo
+            case "r": // Rotation Servo
                 controlServo(dId, msg[1], parseInt(msg.substr(3,4)));
                 break;
-            case "b":
+            case "b": // Rover
                 controlBot(dId, msg[3].toLowerCase(), parseInt(msg.substr(4,4)));
                 break;
-            case "h":
+            case "h": // Bothead or 2 axis gimble
                 controlBotHead(dId, msg[3].toLowerCase());
                 break;
-            case "v":
+            case "v": // var_batch
                 controlVariable(dId, msg.substr(2,100));
-            case "z":
+            case "y": // Pause
+                basic.pause(parseInt(msg.substr(2,20)));
+            case "z": // vba
                 controlCommands(dId, msg.substr(3,100));
         }
     }
@@ -397,66 +401,18 @@ if(isVba) {
         if(isRunning) {
             if(cmdVars[0] && cmdVars[0][0]) {
                 cmdVars[0].forEach(function (cmd: any) {
-                if(cmd.deviceType && cmd.deviceId && cmd.value){
-                    if(cmd.deviceType == 'x') {
-                        basic.pause(parseInt(cmd.value));
-                    } else {
+                    if(cmd.deviceType && cmd.deviceId && cmd.value){
                         //    console.log(cmd);
-                        basic.showString(cmd.value);
-                        //    handleMessage(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
+                        // basic.showString(cmd.value);
+                        handleMessage(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
                     }
-                } 
                 });
             }
         } else {
             basic.pause(500);
             // Add any position cleanup for the stop state here
         }
-    })
-
-    //Group 1
-    basic.forever(function () {
-        if(isRunning) {
-            if(cmdVars[1] && cmdVars[1][0]) {
-                cmdVars[1].forEach(function (cmd: any) {
-                if(cmd.deviceType && cmd.deviceId && cmd.value){
-                    if(cmd.deviceType == 'x') {
-                        basic.pause(parseInt(cmd.value));
-                    } else {
-                        //    console.log(cmd);
-                        basic.showString(cmd.value);
-                        //    handleMessage(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
-                    }
-                } 
-                });
-            }
-        } else {
-            basic.pause(500);
-            // Add any position cleanup for the stop state here
-        }
-    })
-
-    //Group 2
-    basic.forever(function () {
-        if(isRunning) {
-            if(cmdVars[2] && cmdVars[2][0]) {
-                cmdVars[2].forEach(function (cmd: any) {
-                if(cmd.deviceType && cmd.deviceId && cmd.value){
-                    if(cmd.deviceType == 'x') {
-                        basic.pause(parseInt(cmd.value));
-                    } else {
-                        //    console.log(cmd);
-                        basic.showString(cmd.value);
-                        //    handleMessage(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
-                    }
-                } 
-                });
-            }
-        } else {
-            basic.pause(500);
-            // Add any position cleanup for the stop state here
-        }
-    })
+    });
 }
 
 basic.showString(mbId);
