@@ -399,6 +399,10 @@ input.onButtonPressed(Button.A, function () {
     // }
 })
 
+/*****
+ * VBA Functionality
+ */
+
 if(isVba) {
     //Group 0
     basic.forever(function () {
