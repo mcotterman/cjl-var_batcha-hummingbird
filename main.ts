@@ -76,6 +76,28 @@ let rovers = [
     }
 ];
 
+let provers = [
+    {
+        id: "1",
+        leftMotor: {
+            pin: FourPort.Two,
+            rotateForward: true
+        },
+        rightMotor: {
+            pin: FourPort.One,
+            rotateForward: false
+        },
+        fudge: 5,
+        speedLimitStraight: 0,
+        speedLimitTurn: 0,
+        staticSpeedStraight: 75,
+        staticSpeedTurn: 50,
+        straightDistance: 10,
+        turnDistance: 90,
+        pause: 500
+    }
+];
+
 // led.enable(false)
 let leds = [
     {
@@ -257,6 +279,31 @@ function controlRover(id: string, direction: string, speed: number) {
     }
 }
 
+function controlProgRover(id: string, direction: string, speed: number) {
+    let foundBot = provers.find(function (value: any, index: number) {
+        return (value.id == id)
+    })
+    if(foundBot) {
+        speed = adjustBotSpeed(foundBot, direction, speed);
+        switch(direction) {
+            case 'f':
+                break;
+            case 'b':
+                break;
+            case 'r':
+                break;
+            case 'l':
+                break;
+            case 's':
+                break;
+            default:
+                basic.showString("?");
+        }
+    } else {
+        basic.showString(`PRover ${id} not found`)
+    }
+}
+
 function controlBotHead(id: string, direction: string) {
     let foundBot = botheads.find(function (value: any, index: number) {
         return (value.id == id);
@@ -309,7 +356,11 @@ function controlBotHead(id: string, direction: string) {
 /* Variables
 Allows RMB to set variables that can then be read by loops to update StringMap
 */
-let cmdVars = [[{}]];
+let cmdVars = [[{
+        deviceType: '',
+        deviceId: '',
+        value: ''
+    }]];
 let debug = 0;
 let isRunning = false;
 
@@ -321,7 +372,7 @@ for (let i = 0; i < 3; i++) {
 }
 
 function convertLed(value: string) {
-    return value.toLowerCase() == "f" ? 100 : parseInt(value) * 10;
+    return value.toLowerCase() == "f" ? 100 : parseInt(value) * 10
 }
 
 radio.onReceivedString(function (receivedString) {
@@ -335,19 +386,30 @@ function controlVariable(id: string, data: string) {
     if(d.length === 2) {
         if(d[0] == 'bs') {
             isRunning = d[1] == '1' ? true : false;
-            if(!isRunning) cmdVars = [[{}]];
+            if(!isRunning) cmdVars = [[{deviceType: '',deviceId: '',value: ''}]];
         }
     } 
 }
 
 function controlCommands(gid: string, data: string) {
-    const deviceType = data[1];
-    const deviceId = deviceType == 'x' ? '' : data[2];
-    cmdVars[parseInt(gid)].push({
-        deviceType: deviceType,
-        deviceId: deviceId,
-        value: data.substr(3,100)
-    });
+    const devType = data[0];
+    const devId = devType == 'x' ? '' : data[1];
+    const igid = parseInt(gid);
+    const val = data.substr(2,20);
+
+    if(cmdVars[igid][0].deviceType == '') {
+            cmdVars[igid][0] = {
+            deviceType: devType,
+            deviceId: devId,
+            value: val
+        };
+    } else {
+        cmdVars[igid].push({
+            deviceType: devType,
+            deviceId: devId,
+            value: val
+        });
+    }
 }
 
 function handleMessage(msg: string) {
@@ -367,15 +429,21 @@ function handleMessage(msg: string) {
             case "b": // Rover
                 controlRover(dId, msg[3].toLowerCase(), parseInt(msg.substr(4,4)));
                 break;
+            case "u": // Programmable Rover
+                controlProgRover(dId, msg[3].toLowerCase(), 0);
+                break;
             case "h": // Bothead or 2 axis gimble
                 controlBotHead(dId, msg[3].toLowerCase());
                 break;
             case "v": // var_batch
                 controlVariable(dId, msg.substr(2,100));
+                break;
             case "y": // Pause
                 basic.pause(parseInt(msg.substr(2,20)));
+                break;
             case "z": // vba
-                controlCommands(dId, msg.substr(3,100));
+                controlCommands(dId, msg.substr(3,20));
+                break;
         }
     }
     if(debug === 1) {
@@ -392,11 +460,14 @@ input.onButtonPressed(Button.A, function () {
     basic.showNumber(debug);
     basic.pause(1000);
     basic.clearScreen();
-    // if(isRunning) {
-    //     isRunning = false;
-    // } else {
-    //     isRunning = true;
-    // }
+})
+
+input.onButtonPressed(Button.AB, function () {
+    if(isRunning) {
+        isRunning = false;
+    } else {
+        isRunning = true;
+    }
 })
 
 /*****
@@ -411,11 +482,17 @@ if(isVba) {
                 cmdVars[0].forEach(function (cmd: any) {
                     if(cmd.deviceType && cmd.deviceId && cmd.value){
                         //    console.log(cmd);
-                        // basic.showString(cmd.value);
+                        // basic.showString(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
                         handleMessage(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
+                    } else {
+                        // basic.showString("NC");
                     }
                 });
+            } else {
+                basic.showString("NC G0")
             }
+            // basic.pause(500);
+            // basic.showString("R")
         } else {
             basic.pause(500);
             // Add any position cleanup for the stop state here
