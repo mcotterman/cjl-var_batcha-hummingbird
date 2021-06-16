@@ -371,6 +371,14 @@ for (let i = 0; i < 3; i++) {
     basic.pause(300)
 }
 
+function setEmptyCmdVars() {
+    cmdVars = [[{
+        deviceType: '',
+        deviceId: '',
+        value: ''
+    }]];
+}
+
 function convertLed(value: string) {
     return value.toLowerCase() == "f" ? 100 : parseInt(value) * 10
 }
@@ -386,7 +394,7 @@ function controlVariable(id: string, data: string) {
     if(d.length === 2) {
         if(d[0] == 'bs') {
             isRunning = d[1] == '1' ? true : false;
-            if(!isRunning) cmdVars = [[{deviceType: '',deviceId: '',value: ''}]];
+            if(!isRunning) setEmptyCmdVars();
         }
     } 
 }
@@ -438,7 +446,7 @@ function handleMessage(msg: string) {
             case "v": // var_batch
                 controlVariable(dId, msg.substr(2,100));
                 break;
-            case "y": // Pause
+            case "x": // Pause
                 basic.pause(parseInt(msg.substr(2,20)));
                 break;
             case "z": // vba
@@ -478,9 +486,9 @@ if(isVba) {
     //Group 0
     basic.forever(function () {
         if(isRunning) {
-            if(cmdVars[0] && cmdVars[0][0]) {
+            if(cmdVars[0] && cmdVars[0][0] && cmdVars[0][0].value != '') {
                 cmdVars[0].forEach(function (cmd: any) {
-                    if(cmd.deviceType && cmd.deviceId && cmd.value){
+                    if(cmd.deviceType && cmd.deviceId){
                         //    console.log(cmd);
                         // basic.showString(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
                         handleMessage(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
@@ -490,6 +498,54 @@ if(isVba) {
                 });
             } else {
                 basic.showString("NC G0")
+            }
+            // basic.pause(500);
+            // basic.showString("R")
+        } else {
+            basic.pause(500);
+            // Add any position cleanup for the stop state here
+        }
+    });
+
+    //Group 1
+    basic.forever(function () {
+        if(isRunning) {
+            if(cmdVars[1] && cmdVars[1][0] && cmdVars[1][0].value != '') {
+                cmdVars[1].forEach(function (cmd: any) {
+                    if(cmd.deviceType && cmd.deviceId){
+                        //    console.log(cmd);
+                        // basic.showString(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
+                        handleMessage(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
+                    } else {
+                        // basic.showString("NC");
+                    }
+                });
+            } else {
+                basic.showString("NC G1")
+            }
+            // basic.pause(500);
+            // basic.showString("R")
+        } else {
+            basic.pause(500);
+            // Add any position cleanup for the stop state here
+        }
+    });
+
+    //Group 2
+    basic.forever(function () {
+        if(isRunning) {
+            if(cmdVars[2] && cmdVars[2][0] && cmdVars[2][0].value != '') {
+                cmdVars[2].forEach(function (cmd: any) {
+                    if(cmd.deviceType && cmd.deviceId){
+                        //    console.log(cmd);
+                        // basic.showString(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
+                        handleMessage(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
+                    } else {
+                        // basic.showString("NC");
+                    }
+                });
+            } else {
+                basic.showString("NC G2")
             }
             // basic.pause(500);
             // basic.showString("R")
