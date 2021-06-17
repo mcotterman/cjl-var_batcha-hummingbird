@@ -363,6 +363,7 @@ let cmdVars = [[{
     }]];
 let debug = 0;
 let isRunning = false;
+let cleanedUp = true;
 
 for (let i = 0; i < 3; i++) {
     controlLed("1", 100)
@@ -377,6 +378,48 @@ function setEmptyCmdVars() {
         deviceId: '',
         value: ''
     }]];
+}
+
+function padString(input: string, strLen: number, padChar: string) {
+    while(input.length < strLen) {
+        input = padChar + input;
+    }
+    return input;
+}
+
+function matrix25Decode (input: string) {
+    let bCon = parseInt(input, 16);
+    let bOut = '';
+    let bLast = 0;
+    do {
+        if(Math.round(bCon % 2) != 0) {
+            bOut = '1' + bOut;
+            bCon--;
+        } else {
+            bOut = '0' + bOut;
+        }
+        bCon = bCon / 2;
+    } while(bCon > 0)
+    bOut = padString(bOut, 52,'0');
+    return bOut;
+}
+
+function matrix25Plot(bOut: string) {
+    let startPoint = 2
+    for(let r = 0; r < 5; r++) {
+        for(let c = 0; c < 5; c++) {
+            if(bOut.substr(startPoint, 2) == '11') {
+                led.plot(c, r);
+            } else {
+                led.unplot(c, r);
+            }
+            startPoint += 2;
+        }
+    }
+}
+
+function controlMatrix25(value: string) {
+    matrix25Plot(matrix25Decode(value));
 }
 
 function convertLed(value: string) {
@@ -400,10 +443,13 @@ function controlVariable(id: string, data: string) {
 }
 
 function controlCommands(gid: string, data: string) {
+    // 01000
     const devType = data[0];
-    const devId = devType == 'x' ? '' : data[1];
+    const devId = devType == 'x' || devType == 'm' ? '' : data[1];
     const igid = parseInt(gid);
+    // const val = devType == 'm' ? matrix25Decode(data.substr(2,20)) : data.substr(2,20);
     const val = data.substr(2,20);
+    // console.log('type: '+devType+' id: '+devId+' val: '+val);
 
     if(cmdVars[igid][0].deviceType == '') {
             cmdVars[igid][0] = {
@@ -421,27 +467,31 @@ function controlCommands(gid: string, data: string) {
 }
 
 function handleMessage(msg: string) {
+    // console.log(msg);
     if(mbId == msg[0]) {
         let dId = msg[2]
         switch(msg[1]) {
+            case "b": // Rover
+                controlRover(dId, msg[3].toLowerCase(), parseInt(msg.substr(4,4)));
+                break;
+            case "h": // Bothead or 2 axis gimble
+                controlBotHead(dId, msg[3].toLowerCase());
+                break;
             case "l": // LED
                 controlLed(dId, convertLed(msg[3]));
                 break;
-            case "t": // Tricolor LED
-                controlTriLed(dId, msg.substr(3,3));
+            case "m": // Matrix 25
+                controlMatrix25(msg.substr(2,100));
                 break;
             case "p": // Position Servo
             case "r": // Rotation Servo
                 controlServo(dId, msg[1], parseInt(msg.substr(3,4)));
                 break;
-            case "b": // Rover
-                controlRover(dId, msg[3].toLowerCase(), parseInt(msg.substr(4,4)));
+            case "t": // Tricolor LED
+                controlTriLed(dId, msg.substr(3,3));
                 break;
             case "u": // Programmable Rover
                 controlProgRover(dId, msg[3].toLowerCase(), 0);
-                break;
-            case "h": // Bothead or 2 axis gimble
-                controlBotHead(dId, msg[3].toLowerCase());
                 break;
             case "v": // var_batch
                 controlVariable(dId, msg.substr(2,100));
@@ -482,27 +532,32 @@ input.onButtonPressed(Button.AB, function () {
  * VBA Functionality
  */
 
+function handleVba(group: number) {
+    if(cmdVars[group] && cmdVars[group][0] && cmdVars[group][0].value != '') {
+        cmdVars[group].forEach(function (cmd: any) {
+            if(cmd.deviceType){
+                handleMessage(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
+            } else {
+                // basic.showString("NC");
+            }
+        });
+    } 
+}
+
+function cleanUpVba() {
+    handleMessage(`${mbId}m0`);
+    cleanedUp = true;
+}
+
 if(isVba) {
     //Group 0
     basic.forever(function () {
         if(isRunning) {
-            if(cmdVars[0] && cmdVars[0][0] && cmdVars[0][0].value != '') {
-                cmdVars[0].forEach(function (cmd: any) {
-                    if(cmd.deviceType && cmd.deviceId){
-                        //    console.log(cmd);
-                        // basic.showString(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
-                        handleMessage(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
-                    } else {
-                        // basic.showString("NC");
-                    }
-                });
-            } else {
-                basic.showString("NC G0")
-            }
-            // basic.pause(500);
-            // basic.showString("R")
+            if(cleanedUp) cleanedUp = false;
+            handleVba(0);
         } else {
             basic.pause(500);
+            if(!cleanedUp) cleanUpVba();
             // Add any position cleanup for the stop state here
         }
     });
@@ -510,21 +565,7 @@ if(isVba) {
     //Group 1
     basic.forever(function () {
         if(isRunning) {
-            if(cmdVars[1] && cmdVars[1][0] && cmdVars[1][0].value != '') {
-                cmdVars[1].forEach(function (cmd: any) {
-                    if(cmd.deviceType && cmd.deviceId){
-                        //    console.log(cmd);
-                        // basic.showString(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
-                        handleMessage(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
-                    } else {
-                        // basic.showString("NC");
-                    }
-                });
-            } else {
-                basic.showString("NC G1")
-            }
-            // basic.pause(500);
-            // basic.showString("R")
+            handleVba(1);
         } else {
             basic.pause(500);
             // Add any position cleanup for the stop state here
@@ -534,21 +575,7 @@ if(isVba) {
     //Group 2
     basic.forever(function () {
         if(isRunning) {
-            if(cmdVars[2] && cmdVars[2][0] && cmdVars[2][0].value != '') {
-                cmdVars[2].forEach(function (cmd: any) {
-                    if(cmd.deviceType && cmd.deviceId){
-                        //    console.log(cmd);
-                        // basic.showString(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
-                        handleMessage(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
-                    } else {
-                        // basic.showString("NC");
-                    }
-                });
-            } else {
-                basic.showString("NC G2")
-            }
-            // basic.pause(500);
-            // basic.showString("R")
+            handleVba(2);
         } else {
             basic.pause(500);
             // Add any position cleanup for the stop state here
@@ -557,3 +584,8 @@ if(isVba) {
 }
 
 basic.showString(mbId);
+
+// handleMessage("1z0m0cc33000c0fff");
+// handleMessage("1z0x01000");
+// handleMessage("1z0m03cf33003fff03");
+// handleMessage("1z0x01000");
