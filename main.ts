@@ -364,6 +364,7 @@ let cmdVars = [[{
 let debug = 0;
 let isRunning = false;
 let cleanedUp = true;
+let vbaRanOnce = false;
 
 for (let i = 0; i < 3; i++) {
     controlLed("1", 100)
@@ -547,14 +548,15 @@ function handleVba(group: number) {
 function cleanUpVba() {
     handleMessage(`${mbId}m0`);
     cleanedUp = true;
+    vbaRanOnce = false;
 }
 
 if(isVba) {
-    //Group 0
+    //Group 0 - On Start
     basic.forever(function () {
-        if(isRunning) {
-            if(cleanedUp) cleanedUp = false;
+        if(isRunning && !vbaRanOnce) {
             handleVba(0);
+            vbaRanOnce = true;
         } else {
             basic.pause(500);
             if(!cleanedUp) cleanUpVba();
@@ -565,6 +567,7 @@ if(isVba) {
     //Group 1
     basic.forever(function () {
         if(isRunning) {
+            if(cleanedUp) cleanedUp = false;
             handleVba(1);
         } else {
             basic.pause(500);
@@ -576,6 +579,16 @@ if(isVba) {
     basic.forever(function () {
         if(isRunning) {
             handleVba(2);
+        } else {
+            basic.pause(500);
+            // Add any position cleanup for the stop state here
+        }
+    });
+
+    //Group 3
+    basic.forever(function () {
+        if(isRunning) {
+            handleVba(3);
         } else {
             basic.pause(500);
             // Add any position cleanup for the stop state here
