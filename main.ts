@@ -598,7 +598,7 @@ function cleanUpVba() {
 }
 
 if(isVba) {
-    //Group 0 - On Start
+    // Group 0 - On Start
     basic.forever(function () {
         if(isRunning && !vbaRanOnce) {
             handleVba(0);
@@ -608,7 +608,7 @@ if(isVba) {
         }
     });
 
-    //Group 1
+    // Group 1 - Forever
     basic.forever(function () {
         if(isRunning) {
             if(cleanedUp) cleanedUp = false;
@@ -620,7 +620,7 @@ if(isVba) {
         }
     });
 
-    //Group 2
+    // Group 2 - Forever
     basic.forever(function () {
         if(isRunning) {
             handleVba(2);
@@ -629,13 +629,18 @@ if(isVba) {
         }
     });
 
-    //Group 3
+    // Group 3 - Forever
     basic.forever(function () {
         if(isRunning) {
             handleVba(3);
         } else {
             basic.pause(500);
         }
+    });
+
+    // Group 4 - On Shake
+    input.onGesture(Gesture.Shake, function () {
+        handleVba(4);
     });
 }
 
