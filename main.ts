@@ -356,11 +356,7 @@ function controlBotHead(id: string, direction: string) {
 /* Variables
 Allows RMB to set variables that can then be read by loops to update StringMap
 */
-let cmdVars = [[{
-        deviceType: '',
-        deviceId: '',
-        value: ''
-    }]];
+let cmdVars = returnEmptyCmdVars();
 let debug = 0;
 let isRunning = false;
 let cleanedUp = true;
@@ -373,12 +369,62 @@ for (let i = 0; i < 3; i++) {
     basic.pause(300)
 }
 
-function setEmptyCmdVars() {
-    cmdVars = [[{
+function returnEmptyCmdVars() {
+    return [[{
         deviceType: '',
         deviceId: '',
         value: ''
-    }]];
+    }],
+    [{
+        deviceType: '',
+        deviceId: '',
+        value: ''
+    }],
+    [{
+        deviceType: '',
+        deviceId: '',
+        value: ''
+    }],
+    [{
+        deviceType: '',
+        deviceId: '',
+        value: ''
+    }],
+    [{
+        deviceType: '',
+        deviceId: '',
+        value: ''
+    }],
+    [{
+        deviceType: '',
+        deviceId: '',
+        value: ''
+    }],
+    [{
+        deviceType: '',
+        deviceId: '',
+        value: ''
+    }],
+    [{
+        deviceType: '',
+        deviceId: '',
+        value: ''
+    }],
+    [{
+        deviceType: '',
+        deviceId: '',
+        value: ''
+    }],
+    [{
+        deviceType: '',
+        deviceId: '',
+        value: ''
+    }]
+    ];
+}
+
+function setEmptyCmdVars() {
+    cmdVars = returnEmptyCmdVars();
 }
 
 function padString(input: string, strLen: number, padChar: string) {
@@ -559,8 +605,6 @@ if(isVba) {
             vbaRanOnce = true;
         } else {
             basic.pause(500);
-            if(!cleanedUp) cleanUpVba();
-            // Add any position cleanup for the stop state here
         }
     });
 
@@ -571,6 +615,7 @@ if(isVba) {
             handleVba(1);
         } else {
             basic.pause(500);
+            if(!cleanedUp) cleanUpVba();
             // Add any position cleanup for the stop state here
         }
     });
@@ -581,7 +626,6 @@ if(isVba) {
             handleVba(2);
         } else {
             basic.pause(500);
-            // Add any position cleanup for the stop state here
         }
     });
 
@@ -591,7 +635,6 @@ if(isVba) {
             handleVba(3);
         } else {
             basic.pause(500);
-            // Add any position cleanup for the stop state here
         }
     });
 }
