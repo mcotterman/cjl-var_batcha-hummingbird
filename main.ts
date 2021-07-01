@@ -610,7 +610,7 @@ if(isVba) {
 
     // Group 1 - Forever
     basic.forever(function () {
-        if(isRunning) {
+        if(isRunning && vbaRanOnce) {
             if(cleanedUp) cleanedUp = false;
             handleVba(1);
         } else {
@@ -622,7 +622,7 @@ if(isVba) {
 
     // Group 2 - Forever
     basic.forever(function () {
-        if(isRunning) {
+        if(isRunning && vbaRanOnce) {
             handleVba(2);
         } else {
             basic.pause(500);
@@ -631,7 +631,7 @@ if(isVba) {
 
     // Group 3 - Forever
     basic.forever(function () {
-        if(isRunning) {
+        if(isRunning && vbaRanOnce) {
             handleVba(3);
         } else {
             basic.pause(500);
