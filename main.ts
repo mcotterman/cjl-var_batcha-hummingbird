@@ -6,6 +6,21 @@ const isVba = true;
  */
 
 /*
+    Sensor List
+*/
+
+// Distance sensor
+// let sensor = {
+//     enabled: true,
+//     type: SensorType.Distance,
+//     pin: ThreePort.One,
+//     minTrigger: 20,
+//     maxTrigger: 80,
+//     readDelay: 300
+// }
+
+
+/*
     Servo List
     You do not need to add or remove any servos, but you can alter the max/min if needed
 
@@ -156,13 +171,6 @@ let botheads = [
         }
     }
 ];
-
-// function getRmbVar (key: string) {
-//     const item = rmbVars.find(function (rVar: any, index: number) {
-//         return rVar.key == key;
-//     });
-//     return item ? item.val : "0";
-// }
 
 /******
  * Platform Specific Functions
@@ -349,6 +357,10 @@ function controlBotHead(id: string, direction: string) {
     }
 }
 
+function getSensorData(type:any, pin:any) {
+    return hummingbird.getSensor(type, pin);
+}
+
 /******
  * NON-Platform Specific Functions
  */
@@ -361,6 +373,8 @@ let debug = 0;
 let isRunning = false;
 let cleanedUp = true;
 let vbaRanOnce = false;
+// let distance = -1;
+
 
 for (let i = 0; i < 3; i++) {
     controlLed("1", 100)
@@ -370,6 +384,11 @@ for (let i = 0; i < 3; i++) {
 }
 
 function returnEmptyCmdVars() {
+    // return [[{
+    //     deviceType: '',
+    //     deviceId: '',
+    //     value: ''
+    // }]];
     return [[{
         deviceType: '',
         deviceId: '',
@@ -514,7 +533,6 @@ function controlCommands(gid: string, data: string) {
 }
 
 function handleMessage(msg: string) {
-    // console.log(msg);
     if(mbId == msg[0]) {
         let dId = msg[2]
         switch(msg[1]) {
@@ -584,8 +602,6 @@ function handleVba(group: number) {
         cmdVars[group].forEach(function (cmd: any) {
             if(cmd.deviceType){
                 handleMessage(`${mbId}${cmd.deviceType}${cmd.deviceId}${cmd.value}`);
-            } else {
-                // basic.showString("NC");
             }
         });
     } 
@@ -629,24 +645,23 @@ if(isVba) {
         }
     });
 
-    // Group 3 - Forever
-    basic.forever(function () {
-        if(isRunning && vbaRanOnce) {
-            handleVba(3);
-        } else {
-            basic.pause(500);
-        }
-    });
-
     // Group 4 - On Shake
-    input.onGesture(Gesture.Shake, function () {
-        handleVba(4);
-    });
+    // input.onGesture(Gesture.Shake, function () {
+    //     handleVba(4);
+    // });
+
+    // Group 9 - Distance Sensor
+    // basic.forever(function () {
+    //     let distance = getSensorData(sensor.type, sensor.pin);
+    //     if (isRunning && sensor.enabled && vbaRanOnce) {
+    //         if (distance >= sensor.minTrigger && distance <= sensor.maxTrigger) {
+    //             handleVba(9);
+    //         }
+    //         basic.pause(sensor.readDelay);
+    //     } else {
+    //         basic.pause(500);
+    //     }
+    // });
 }
 
 basic.showString(mbId);
-
-// handleMessage("1z0m0cc33000c0fff");
-// handleMessage("1z0x01000");
-// handleMessage("1z0m03cf33003fff03");
-// handleMessage("1z0x01000");
