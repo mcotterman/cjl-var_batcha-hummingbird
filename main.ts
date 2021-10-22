@@ -38,6 +38,7 @@ let servos = [
         min: -100,
         max: 100,
         fudge: 0,
+        startState: 0,
         invert: false
     },
         {
@@ -48,6 +49,7 @@ let servos = [
         min: -100,
         max: 100,
         fudge: 0,
+        startState: 0,
         invert: false
     },
     {
@@ -58,6 +60,7 @@ let servos = [
         min: 10,
         max: 150,
         fudge: 0,
+        startState: 0,
         invert: false
     },
     {
@@ -68,6 +71,7 @@ let servos = [
         min: 10,
         max: 150,
         fudge: 0,
+        startState: 0,
         invert: false
     }
 ];
@@ -608,8 +612,18 @@ function handleVba(group: number) {
 }
 
 function cleanUpVba() {
-    handleMessage(`${mbId}m0`);
     cleanedUp = true;
+    handleMessage(`${mbId}m0`);
+    trileds.forEach((led) => {
+        handleMessage(`${mbId}t${led.port}000`);
+    });
+    leds.forEach((led) => {
+        handleMessage(`${mbId}l${led.port}0`);
+    });
+    servos.forEach((servo) => {
+        // basic.showString(`${ mbId }${ servo.stype }${ servo.port }${ servo.startState }`);
+        handleMessage(`${mbId}${servo.stype}${servo.port}${servo.startState}`);
+    });
     vbaRanOnce = false;
 }
 
